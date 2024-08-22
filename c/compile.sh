@@ -1,0 +1,1 @@
+clang --target=wasm32 -O3 -nostdlib -Wl,--no-entry -Wl,--allow-undefined -Wl,--export,init -Wl,--export,step -Wl,--export,on_key_down src/snake.c -o dist/snake.wasm

@@ -1,0 +1,75 @@
+const canvas = document.getElementById("canvas");
+const scoreDisplay = document.getElementById("score-display");
+const up = document.getElementById("up");
+const left = document.getElementById("left");
+const down = document.getElementById("down");
+const right = document.getElementById("right");
+const cx = canvas.getContext("2d");
+let stepPeriod = 300;
+
+export function canvas_set_fill_style(hexColor) {
+    var color = "#" + hexColor.toString(16).padStart(6, "0");
+    cx.fillStyle = color;
+}
+
+export function canvas_fill_rect(x, y, width, height) {
+    cx.fillRect(x, y, width, height);
+}
+
+export function canvas_fill() {
+    cx.fill();
+}
+
+export function snake_score_change(score) {
+    scoreDisplay.textContent = score;
+}
+
+export function step_period_update(period) {
+    stepPeriod = period;
+}
+
+export function game_over() {
+    window.alert("Game Over !");
+    window.location.reload();
+}
+
+export function random(max) {
+    return Math.random() * max;
+}
+
+const keys = {
+    ArrowUp: 0,
+    ArrowDown: 1,
+    ArrowLeft: 2,
+    ArrowRight: 3,
+};
+
+window.addEventListener("TrunkApplicationStarted", () => {
+    //let game = new window.wasmBindings.GameState();
+    window.wasmBindings.init();
+
+    window.onkeydown = (e) => {
+        e.stopPropagation();
+        window.wasmBindings.on_key_down(keys[e.code]);
+    };
+
+    up.onclick = () => window.wasmBindings.on_key_down(keys.ArrowUp);
+    down.onclick = () => window.wasmBindings.on_key_down(keys.ArrowDown);
+    left.onclick = () => window.wasmBindings.on_key_down(keys.ArrowLeft);
+    right.onclick = () => window.wasmBindings.on_key_down(keys.ArrowRight);
+
+    let lastUpdateTimestamp = -1;
+
+    function step(timestamp) {
+        if (lastUpdateTimestamp < 0) lastUpdateTimestamp = timestamp;
+        const progress = timestamp - lastUpdateTimestamp;
+        if (progress >= stepPeriod) {
+            lastUpdateTimestamp = timestamp;
+            window.wasmBindings.step(progress);
+        }
+        window.requestAnimationFrame(step);
+    }
+
+    window.requestAnimationFrame(step);
+});
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Canvasnake</title>
+    <style>
+        #canvas {
+            border: 1px solid white;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #score {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: large;
+            color: white;
+            text-align: center;
+        }
+
+        #buttons {
+            text-align: center;
+            transform: rotate(45deg);
+        }
+
+        #up {
+            border-right: none;
+            border-bottom: none;
+        }
+
+        #right {
+            border-left: none;
+            border-bottom: none;
+        }
+
+        #left {
+            border-right: none;
+            border-top: none;
+        }
+
+        #down {
+            border-left: none;
+            border-top: none;
+        }
+
+        body {
+            background-color: black;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin: 5px;
+            background-color: black;
+            color: white;
+            border: 3px solid white;
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" width="400" height="400">
+    </canvas>
+    <p id="score">
+        Score: <span id="score-display">0</span>
+    </p>
+    <div id="buttons">
+        <button id="up"></button><button id="right"></button><br><button id="left"></button><button id="down"></button>
+    </div>
+    <script>
+        const canvas = document.getElementById("canvas");
+        const scoreDisplay = document.getElementById("score-display");
+        const cx = canvas.getContext("2d");
+        let stepPeriod = 300;
+        let env = {
+            canvas_set_fill_style(hexColor) {
+                var color = "#" + hexColor.toString(16).padStart(6, "0");
+                cx.fillStyle = color;
+            },
+            canvas_fill_rect(x, y, width, height) {
+                cx.fillRect(x | 0, y | 0, width | 0, height | 0);
+            },
+            canvas_fill() {
+                cx.fill();
+            },
+            snake_score_change(score) {
+                scoreDisplay.textContent = score;
+            },
+            step_period_update(period) {
+                stepPeriod = period;
+            },
+            game_over() {
+                window.alert("Game Over !");
+                window.location.reload();
+            },
+            random(max) {
+                return (Math.random() * max) | 0;
+            },
+        };
+        Object.assign(window, env);
+    </script>
+    <script type="module">
+        import { direction_changed, step } from "./build/release.js";
+        const keys = {
+            ArrowUp: 0,
+            ArrowDown: 1,
+            ArrowLeft: 2,
+            ArrowRight: 3,
+        };
+        const up = document.getElementById("up");
+        const left = document.getElementById("left");
+        const down = document.getElementById("down");
+        const right = document.getElementById("right");
+        console.log("hello");
+        window.onkeydown = (e) => {
+            e.stopPropagation();
+            direction_changed(keys[e.code]);
+        };
+        up.onclick = () => direction_changed(keys.ArrowUp);
+        down.onclick = () => direction_changed(keys.ArrowDown);
+        left.onclick = () => direction_changed(keys.ArrowLeft);
+        right.onclick = () => direction_changed(keys.ArrowRight);
+
+        let lastUpdateTimestamp = -1;
+
+        function _step(timestamp) {
+            if (lastUpdateTimestamp < 0) lastUpdateTimestamp = timestamp;
+            const progress = timestamp - lastUpdateTimestamp;
+            if (progress >= stepPeriod) {
+                lastUpdateTimestamp = timestamp;
+                step(progress);
+            }
+            window.requestAnimationFrame(_step);
+        }
+        window.requestAnimationFrame(_step);
+    </script>
+</body>
+
+</html>
